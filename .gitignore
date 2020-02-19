@@ -1,0 +1,10 @@
+# Vim files
+*[._]sw[pon]
+*.csv
+*.o
+*.so
+
+# Folders
+lib/
+bin/
+venv/
