@@ -1,6 +1,6 @@
-from attr import attrs, attrib
-import ctypes as ct
 import sys
+import ctypes as ct
+from attr import attrs, attrib
 
 
 def load_library(path):
@@ -20,7 +20,6 @@ class Main:
         char = "a".encode("utf-8")
         for _ in range(self._loop_count):
             string = self._lib.append(string, char)
-        print(string)
 
 
 if __name__ == "__main__":
