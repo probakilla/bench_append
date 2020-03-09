@@ -5,7 +5,9 @@ C_RESULTS=$RESULTS_DIR/c_res.csv
 PY_RESULTS=$RESULTS_DIR/py_res.csv
 CTYPES_RESULTS=$RESULTS_DIR/ctypes_res.csv
 
-FILE_HEADER="iterations,cpu used,cpu time (s),real time (s)"
+FILE_HEADER="1,10,100,1000,10000,100000,1000000"
+TIME_ARGS="-f %S"
+MAX_ITER=1000000
 
 function remove_file {
     local filename=$1
@@ -33,12 +35,48 @@ function run {
 
 function run_iteration {
     local loop_count=$1
-    local time_args="-f $loop_count,%P,%S,%E"
+    local time_args="-f %S"
     { /usr/bin/time $time_args bin/append $loop_count ; } 2>> $C_RESULTS
     { /usr/bin/time $time_args python3 append.py $loop_count ; } 2>> $PY_RESULTS
     { /usr/bin/time $time_args python3 append_ctypes.py $loop_count ; } 2>> $CTYPES_RESULTS
+    exit 0;
 }
 
-init_files
-run
+function run_loop {
+    local program=$1
+    result=$(eval $program)
+    out=$(echo $result | sed -e "s/ //g")
+    out=${out::-1}
+    echo $out
+}
+
+function run_python {
+    for (( i=1; i<=$MAX_ITER; i=$i*10 ))
+    do
+        echo $( { /usr/bin/time $TIME_ARGS python3 append.py $i; } 2>&1)
+        echo ","
+    done
+}
+
+function run_c {
+    local program=$1
+    for (( i=1; i<=$MAX_ITER; i=$i*10 ))
+    do
+        echo $( { /usr/bin/time $TIME_ARGS bin/append $i; } 2>&1)
+        echo ","
+    done
+}
+
+function run_hybrid {
+    local program=$1
+    for (( i=1; i<=$MAX_ITER; i=$i*10 ))
+    do
+        echo $( { /usr/bin/time $TIME_ARGS python3 append_ctypes.py $i; } 2>&1)
+        echo ","
+    done
+}
+
+echo $(run_loop run_python)
+echo $(run_loop run_c)
+echo $(run_loop run_hybrid)
 exit 0
